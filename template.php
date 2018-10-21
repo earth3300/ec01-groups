@@ -98,7 +98,7 @@ class GroupsTemplate extends Groups
 			{
 				$colors = $color_l1['hue']['two'];
 
-				$str .= '<div class="line group level-1 border shadows first" style="';
+				$str .= '<div class="line group level-1 border" style="';
 				$str .= $this->opts['show_level_one_border_color'] ? sprintf( ' border: %spx solid %s', $this->opts['level_one_border_width'], $this->getHSLBorder( $color_l1['hue'], 1 ) ) : '';
 				$str .= $this->opts['show_level_one_background_color'] ? ' background: ' . $this->getHSLBackgroundColor( $color_l1['hue'], 1 ) : '';
 				$str .= $this->opts['show_level_one_background_image'] ? $this->getBackground( $color_l1['hue'], $num ) : '';
@@ -152,7 +152,7 @@ class GroupsTemplate extends Groups
 		$str .= ' color: ' . $this->getTextColor( $color_l2 );
 		$str .= '">' . PHP_EOL;
 		$str .= $this->opts['show_level_one_count'] ? sprintf( '<div style="position: absolute; top: 9px; left: 9px;"><sup>%s</sup></div>%s', $num, PHP_EOL ) : '';
-		$str .= $this->opts['show_level_two_color_id'] ? sprintf( '<div>%s</div>', $this->getColorId( $color_l2 ) ) : '';
+		$str .= 0 && $this->opts['show_level_two_color_id'] ? sprintf( '<div>%s</div>', $this->getColorId( $color_l2 ) ) : '';
 		$str .= $this->opts['show_level_two_color_id'] ? sprintf( '<div>%s</div>', $this->getHSLBackgroundColor( $color_l2, 2 ) ) : '';
 
 
@@ -185,8 +185,7 @@ class GroupsTemplate extends Groups
 	private function getLevelThreeHTML( $color, $k1, $k2, $k3, $sum )
 	{
 		$sum = ($k1 + 1 ) * ( $k2 + 1 ) * ( $k3 + 1 );
-		$str = sprintf( '<div class="unit level-3 size1of%s" ', $this->opts['columns_level_three'] );
-		$str .= 'style="border-radius: 3px;">' . PHP_EOL;
+		$str = sprintf( '<div class="unit level-3 size1of%s">', $this->opts['columns_level_three'] );
 		$str .= '<div class="border" ';
 		$str .= 'style="';
 		$str .= $this->opts['show_level_three_border'] ? sprintf( ' border: %spx solid %s', $this->opts['level_three_border_width'], $this->getHSLBorder( $color, 3 ) ): '';
@@ -298,7 +297,7 @@ class GroupsTemplate extends Groups
 			{
 				// Group open
 				if ( 0 && $this->opts['use_groups'] && ( $k % $this->opts['group-size'] == 0 ) ){
-					$str .= '<div class="line group border shadows">' . PHP_EOL;
+					$str .= '<div class="line group border">' . PHP_EOL;
 					$str .= $this->opts['show_text'] ? sprintf('<h2>%s</h2>%s', $group_name, PHP_EOL) : '';
 					$cnt_grp++;
 				}
