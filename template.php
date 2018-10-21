@@ -3,7 +3,9 @@
 namespace Earth3300\EC01;
 
 /**
- * Groups Template
+ * Template for Groups.
+ *
+ * This file: template.php
  *
  * Last Updated: 2018-10-21 12:22 PM EST
  */
