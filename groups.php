@@ -8,6 +8,8 @@ namespace Earth3300\EC01;
  * This file begins the difficult task of dividing people into groups.
  * The other way of looking at this is to create groups into which go people.
  * This second way of looking things may be easier.
+ *
+ * Last Updated: 2018-10-21 12:20 PM EST
  */
 
 /**
@@ -131,6 +133,12 @@ class Groups
 	 * For each hue, pick a saturation and lightness, then work through
 	 * the hue divisions and fill out blocks with these different hues.
 	 *
+	 * For saturation, pick values between about 85% and 30%. A higher saturation
+	 * value indicates a purer color. A lower value tends toward grey. However no
+	 * saturation means grey, which we don't want, so we need to stay above a value
+	 * that allows us to still see the color. Saturation stays the same within
+	 * each level. It increases by one unit for each additional level.
+	 *
 	 * @return array
 	 */
 	private function generateLevelTwo( $h1 )
@@ -141,8 +149,10 @@ class Groups
 
 		for( $h2=0; $h2 < 360 / $degrees; $h2++ )
 		{
+			//$saturation = $this->opts['level_two_sat'] + $this->opts['level_two_offset'] * $h1;
+			$saturation = 100 - ( ( $h1 + 1 ) * $increment );
 			$colors[$h2]['h'] = $h2 * $degrees + $this->opts['level_two_offset'] * 2;
-			$colors[$h2]['s'] = $this->opts['level_two_sat'] + $this->opts['level_two_offset'] * $h1;
+			$colors[$h2]['s'] = $saturation;
 			$colors[$h2]['l'] = $this->opts['level_two_lit'];
 			$colors[$h2]['three'] = $this->generateLevelThree( $h1, $h2 );
 		}
@@ -150,7 +160,7 @@ class Groups
 	}
 
 	/**
-	 * Generate Level Two Colors
+	 * Generate Level Three Colors
 	 *
 	 * Cycle through the hues, n times, for each level. Then repeat for next
 	 * level, changing the hue or saturation to show a difference. Maximum,
@@ -415,7 +425,10 @@ class Groups
 	{
 		if ( isset( $hsl['h'] ) && isset( $hsl['s'] ) && isset( $hsl['l'] ) )
 		{
-			$hsl = sprintf( '(%s, %s, %s)', number_format( $hsl['h'], 0 ), $hsl['s'], $hsl['l'] );
+			$hsl = sprintf( '(%s, %s, %s)',
+						   number_format( $hsl['h'], 0 ),
+						   number_format( $hsl['s'], 0 ),
+						   $hsl['l'] );
 		}
 		else
 		{
@@ -478,32 +491,42 @@ class Groups
 	{
 		if ( isset( $hsl['h'] ) && isset( $hsl['s'] ) && isset( $hsl['l'] ) )
 		{
+			$hslStyle = sprintf( 'hsl(%s, %s%%, ',
+								number_format( $hsl['h'], 0 ),
+								number_format( $hsl['s'], 0 )
+								);
+
 			if ( $level == 1 )
 			{
-				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 25 );
+				// 25
+				$hslStyle .= sprintf( '%s%%);', 25 );
 			}
 			elseif ( $level == 2 )
 			{
-				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 30 );
+				// 30
+				$hslStyle .= sprintf( '%s%%);', 30 );
 			}
 			elseif ( $level == 3 )
 			{
-				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 35 );
+				// 35
+				$hslStyle .= sprintf( '%s%%);', 35 );
 			}
 			elseif ( $level == 4 )
 			{
-				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 40 );
+				// 40
+				$hslStyle .= sprintf( '%s%%);', 40 );
 			}
 			else
 			{
-				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 27 );
+				// 27
+				$hslStyle .= sprintf( '%s%%);', 27 );
 			}
 		}
 		else
 		{
-			$hsl = false;
+			$hslStyle = false;
 		}
-		return $hsl;
+		return $hslStyle;
 	}
 
 	/**
@@ -521,33 +544,37 @@ class Groups
 	{
 		if ( isset( $hsl['h'] ) && isset( $hsl['s'] ) && isset( $hsl['l'] ) )
 		{
+			$hslStyle = sprintf( 'hsl(%s, %s%%, ',
+								number_format( $hsl['h'], 0 ),
+								number_format( $hsl['s'], 0 )
+								);
+
 			if ( $level == 1 )
 			{
-
-				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 85 );
+				$hslStyle .= sprintf( '%s%%);', 85 );
 			}
 			elseif ( $level == 2 )
 			{
-				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 82.5 );
+				$hslStyle .= sprintf( '%s%%);', 75 );
 			}
 			elseif ( $level == 3 )
 			{
-				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 65 );
+				$hslStyle .= sprintf( '%s%%);', 70 );
 			}
 			elseif ( $level == 4 )
 			{
-				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 60 );
+				$hslStyle .= sprintf( '%s%%);', 65 );
 			}
 			else
 			{
-				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 75 );
+				$hslStyle .= sprintf( '%s%%);', 80 );
 			}
 		}
 		else
 		{
-			$hsl = false;
+			$hslStyle = false;
 		}
-		return $hsl;
+		return $hslStyle;
 	}
 
 	/**
@@ -628,7 +655,11 @@ class Groups
 		}
 		elseif ( isset( $color['h'] ) && isset( $color['s'] ) && isset( $color['l'] ) )
 		{
-			$color_id = sprintf( '%s%s%s', str_pad( $color['h'], 3, "0", STR_PAD_LEFT ), str_pad( $color['s'], 3, "0", STR_PAD_LEFT ) , str_pad( $color['l'], 3, "0", STR_PAD_LEFT ) );
+			$color_id = sprintf( '%s-%s-%s',
+								str_pad( $color['h'], 3, "0", STR_PAD_LEFT ),
+								str_pad( number_format( $color['s'], 0 ), 3, "0", STR_PAD_LEFT ) ,
+								str_pad( $color['l'], 3, "0", STR_PAD_LEFT )
+								);
 		}
 		else
 		{
