@@ -1,5 +1,7 @@
 <?php
 
+namespace Earth3300\EC01;
+
 /**
  * Creates Groups.
  *
@@ -14,17 +16,32 @@
 class Groups
 {
 	protected $opts = [
-		'max' => 48,
-		'max_hues' => 8,
-		'offset' => 4,
+		'max' => 3,
+		'max_hues' => 1,
+		'offset' => 12,
+		'level_one_offset' => 12,
+		'level_two_offset' => 4,
+		'level_three_offset' => 6,
+		'level_four_offset' => 8,
 		'inc_h' => 45,
+		'level_one_groups' => 4,
+		'level_one_inc_hue' => 45,
+		'level_two_groups' => 6,
+		'level_two_inc_hue' => 60,
+		'level_three_groups' => 8,
+		'level_three_inc_hue' => 45,
+		'level_four_groups' => 8,
+		'level_four_inc_hue' => 45,
 		'inc_s' => 20,
+		'level_one_sat' => 50,
+		'level_two_sat' => 33,
+		'level_three_sat' => 50,
+		'level_four_sat' => 50,
 		'inc_l' => 25,
-		'hsl' => [
-		'h' => [ 'min' => 0, 'max' => 360 ],
-		's' => [ 'min' => 0, 'max' => 100 ],
-		'l' => [ 'min' => 0, 'max' => 100 ],
-		],
+		'level_one_lit' => 30,
+		'level_two_lit' => 80,
+		'level_three_lit' => 30,
+		'level_four_lit' => 30,
 		'allow_print' => true,
 		'print_file_name' => 'index.html',
 		];
@@ -46,19 +63,26 @@ class Groups
 
 		$template = new GroupsTemplate();
 
-		if ( $colors = $this->generate() )
+		if ( 0 )
 		{
+			$colors = $this->generateColors();
 			$article = $template->getGroupsHTML( $groups, $colors );
-
-			$page = $template->getPageHTML( $article );
-
-			$printed = $this->printHTMLPage( 'self', $page );
-
-			return $page;
 		}
-		else {
-			return 'N/A';
+		elseif( 1 )
+		{
+			$colors = $this->generateLevelOne();
+			$article = $template->getLevelOneHTML( $colors );
 		}
+		else
+		{
+			$colors = $this->generateColors();
+			$article = $template->getColorHTML( $colors );
+		}
+		$page = $template->getPageHTML( $article );
+
+		$printed = $this->printHTMLPage( 'self', $page );
+
+		return $page;
 	}
 
 	/**
@@ -71,28 +95,132 @@ class Groups
 	}
 
 	/**
+	 * Generate Level One Colors.
+	 *
+	 * Cycle through the hues, n times, for each level. Then repeat for next
+	 * level, changing the hue or saturation to show a difference. Maximum,
+	 * three levels.
+	 *
+	 * For each hue, pick a saturation and lightness, then work through
+	 * the hue divisions and fill out blocks with these different hues.
+	 *
+	 * @return array
+	 */
+	private function generateLevelOne()
+	{
+		$colors = [];
+		$degrees = $this->getDegrees( $this->opts['level_one_groups'] );
+
+		for( $h1=0; $h1 < 360 / $degrees; $h1++ )
+		{
+			$colors[$h1]['hue']['h'] = $h1 * $degrees + $this->opts['level_one_offset'];
+			$colors[$h1]['hue']['s'] = $this->opts['level_one_sat'];
+			$colors[$h1]['hue']['l'] = $this->opts['level_one_lit'];
+			$colors[$h1]['hue']['two'] = $this->generateLevelTwo( $h1 );
+		}
+		return $colors;
+	}
+
+	/**
+	 * Generate Level Two Colors
+	 *
+	 * Cycle through the hues, n times, for each level. Then repeat for next
+	 * level, changing the hue or saturation to show a difference. Maximum,
+	 * three levels.
+	 *
+	 * For each hue, pick a saturation and lightness, then work through
+	 * the hue divisions and fill out blocks with these different hues.
+	 *
+	 * @return array
+	 */
+	private function generateLevelTwo( $h1 )
+	{
+		$colors = [];
+		$degrees = $this->getDegrees( $this->opts['level_two_groups'] );
+		$increment = $this->getIncrement( $this->opts['level_two_groups'] );
+
+		for( $h2=0; $h2 < 360 / $degrees; $h2++ )
+		{
+			$colors[$h2]['h'] = $h2 * $degrees + $this->opts['level_two_offset'] * 2;
+			$colors[$h2]['s'] = $this->opts['level_two_sat'] + $this->opts['level_two_offset'] * $h1;
+			$colors[$h2]['l'] = $this->opts['level_two_lit'];
+			$colors[$h2]['three'] = $this->generateLevelThree( $h1, $h2 );
+		}
+		return $colors;
+	}
+
+	/**
+	 * Generate Level Two Colors
+	 *
+	 * Cycle through the hues, n times, for each level. Then repeat for next
+	 * level, changing the hue or saturation to show a difference. Maximum,
+	 * three levels.
+	 *
+	 * For each hue, pick a saturation and lightness, then work through
+	 * the hue divisions and fill out blocks with these different hues.
+	 *
+	 * @return array
+	 */
+	private function generateLevelThree( $h1, $h2 )
+	{
+		$num = ( $h1 + 1 ) * ( $h2 + 1 );
+		$colors = [];
+		$degrees = $this->getDegrees( $this->opts['level_three_groups'] );
+		$increment = $this->getIncrement( $this->opts['level_three_groups'] );
+		for( $h3=0; $h3 < 360 / $degrees; $h3++ )
+		{
+			$colors[$h3]['h'] = $h3 * $degrees + $this->opts['level_three_offset'] * 3;
+			$colors[$h3]['s'] = $this->opts['level_three_sat'] + $this->opts['level_two_offset'];
+			$colors[$h3]['l'] = $this->opts['level_three_lit'] + $this->opts['level_three_offset'] * $increment;
+			$colors[$h3]['four'] = $this->generateLevelFour( $h1, $h2, $h3 );
+		}
+		return $colors;
+	}
+
+	/**
+	 * Generate Level Four Colors
+	 *
+	 * Cycle through the hues, n times, for each level. Then repeat for next
+	 * level, changing the hue or saturation to show a difference. Maximum,
+	 * three levels.
+	 *
+	 * For each hue, pick a saturation and lightness, then work through
+	 * the hue divisions and fill out blocks with these different hues.
+	 *
+	 * @return array
+	 */
+	private function generateLevelFour( $h1, $h2, $h3 )
+	{
+		$colors = [];
+		$degrees = $this->getDegrees( $this->opts['level_four_groups'] );
+		$increment = $this->getIncrement( $this->opts['level_four_groups'] );
+
+		for( $h4=0; $h4 < 360 / $degrees; $h4++ )
+		{
+			$colors[$h4]['h'] = $h4 * $degrees; + $this->opts['level_four_offset'] * 4;
+			$colors[$h4]['s'] = $this->opts['level_four_sat'];
+			$colors[$h4]['l'] = $this->opts['level_four_lit'];
+		}
+		return $colors;
+	}
+
+	/**
 	 * Generate the colors.
 	 *
 	 * @return array
 	 */
-	private function generate()
+	private function generateColors()
 	{
 		$colors = [];
-
-		$hsl['h'] = 0;
-		$hsl['s'] = 0;
-		$hsl['l'] = 0;
 
 		$inc_h = $this->opts['inc_h'];
 		$inc_s = $this->opts['inc_s'];
 		$inc_l = $this->opts['inc_l'];
 
-		/**
-		 * For each run through the loop, we need a distinct color.
-		 * This means all the values of H, S and L need to be complete,
-		 * for a single index value.
-		 */
 		$i = 0;
+
+		// generate a hue set first.
+		// Then for each hue set, generate a bunch of other colors.
 
 		for( $h=0; $h < 360 / $inc_h; $h++ )
 		{
@@ -103,13 +231,14 @@ class Groups
 					for( $l=1; $l < 100 / $inc_l; $l++ )
 					{
 						if ( $l * $inc_l < 40 || $l * $inc_l > 60 ) {
+
 							//variable increments
 							$colors[$i]['h'] = $h * $inc_h + $this->opts['offset'];
 
-							//25% increments
+							// ~25% increments
 							$colors[$i]['s'] = $s * $inc_s;
 
-							//25% increments
+							// ~25% increments
 							if ( $l * $inc_l > 60 )
 							{
 								$colors[$i]['l'] = $l * $inc_l - 8;
@@ -117,7 +246,6 @@ class Groups
 							else
 							{
 								$colors[$i]['l'] = $l * $inc_l + 4;
-
 							}
 							$i++;
 						}
@@ -127,6 +255,37 @@ class Groups
 		}
 
 		return $colors;
+	}
+
+	/**
+	 * Gets Degrees of Separation Between Hues Based on the Number of Groups Needed.
+	 *
+	 * Gets the degrees of saturation between the hues based on
+	 * how many groups are needed.
+	 *
+	 * @param $num_groups
+	 *
+	 * @return integer $degrees
+	 */
+	private function getDegrees( $num_groups )
+	{
+		$degrees = 360 / $num_groups;
+		return $degrees;
+	}
+
+	/**
+	 * Gets Increment
+	 *
+	 * Gets the increment based on number of groups
+	 *
+	 * @param $num_groups
+	 *
+	 * @return integer $increment
+	 */
+	private function getIncrement( $num_groups )
+	{
+		$increment = 100 / $num_groups;
+		return $increment;
 	}
 
 	/**
@@ -254,8 +413,175 @@ class Groups
 	 */
 	protected function getHSLValue( $hsl )
 	{
-		$hsl = sprintf( '(%s, %s, %s)', number_format( $hsl['h'], 0 ), $hsl['s'], $hsl['l'] );
+		if ( isset( $hsl['h'] ) && isset( $hsl['s'] ) && isset( $hsl['l'] ) )
+		{
+			$hsl = sprintf( '(%s, %s, %s)', number_format( $hsl['h'], 0 ), $hsl['s'], $hsl['l'] );
+		}
+		else
+		{
+			$hsl = '';
+		}
 		return $hsl;
+	}
+
+	/**
+	 * Get the HSL value formatted for Styling
+	 *
+	 * @pararm array $hsl
+	 *
+	 * @return string
+	 */
+	protected function getHSLStyle( $hsl, $type = 'background' )
+	{
+		if ( isset( $hsl['h'] ) && isset( $hsl['s'] ) && isset( $hsl['l'] ) )
+		{
+			if ( $type == 'border' )
+			{
+				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], $hsl['l'] );
+			}
+			elseif ( $type == 'background' )
+			{
+				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 80 );
+			}
+			elseif ( $type == 'darker' )
+			{
+				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 25 );
+			}
+			elseif ( $type == 'medium' )
+			{
+				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 50 );
+			}
+			elseif ( $type == 'strong' )
+			{
+				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 40 );
+			}
+			else
+			{
+				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 80 );
+			}
+		}
+		else
+		{
+			$hsl = false;
+		}
+		return $hsl;
+	}
+
+	/**
+	 * Get the HSL value formatted for Styling
+	 *
+	 * @pararm array $hsl
+	 *
+	 * @return string
+	 */
+	protected function getHSLBorder( $hsl, $level = 1 )
+	{
+		if ( isset( $hsl['h'] ) && isset( $hsl['s'] ) && isset( $hsl['l'] ) )
+		{
+			if ( $level == 1 )
+			{
+				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 25 );
+			}
+			elseif ( $level == 2 )
+			{
+				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 30 );
+			}
+			elseif ( $level == 3 )
+			{
+				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 35 );
+			}
+			elseif ( $level == 4 )
+			{
+				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 40 );
+			}
+			else
+			{
+				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 27 );
+			}
+		}
+		else
+		{
+			$hsl = false;
+		}
+		return $hsl;
+	}
+
+	/**
+	 * Gets the HSL value formatted for Styling.
+	 *
+	 * Keeps the Hue and Saturation the same. Cranks the Lightness way down.
+	 *
+	 * @link http://hslpicker.com/
+	 *
+	 * @pararm array $hsl
+	 *
+	 * @return string
+	 */
+	protected function getHSLBackgroundColor( $hsl, $level = 1 )
+	{
+		if ( isset( $hsl['h'] ) && isset( $hsl['s'] ) && isset( $hsl['l'] ) )
+		{
+			if ( $level == 1 )
+			{
+
+				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 85 );
+			}
+			elseif ( $level == 2 )
+			{
+				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 82.5 );
+			}
+			elseif ( $level == 3 )
+			{
+				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 65 );
+			}
+			elseif ( $level == 4 )
+			{
+				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 60 );
+			}
+			else
+			{
+				$hsl = sprintf( 'hsl(%s, %s%%, %s%%);', number_format( $hsl['h'], 0 ), $hsl['s'], 75 );
+			}
+		}
+		else
+		{
+			$hsl = false;
+		}
+		return $hsl;
+	}
+
+	/**
+	 *
+	 */
+	protected function getBackground( $color, $num )
+	{
+		if ( ! isset( $color['h'] ) || ! isset( $color['s'] ) || ! isset( $color['l'] ) )
+		{
+			//var_dump( $color );
+		}
+
+		if ( isset( $color['h'] ) && isset( $color['s'] ) && isset( $color['l'] ) )
+		{
+			$hsl = sprintf( 'hsl(%s, %s%%, %s%%)', $color['h'], $color['s'], $color['l'] );
+		}
+		else
+		{
+			$hsl = 'hsl( 36, 75%, 75%)';
+		}
+
+		$data = [
+			1 => 'tile-3px.png',
+			2 => 'graph.png',
+			3 => 'asphalt.png',
+			4 => 'basketball.png',
+			5 => 'bricks.png',
+			6 => 'felt.png',
+			7 => 'leaves.png',
+		];
+		$url = '/0/theme/image/background';
+		$url .= isset( $data[$num] ) ? '/' . $data[$num] : $data[6];
+		$background = sprintf(' background: %s url(%s);', $hsl, $url );
+		return $background;
 	}
 
 	/**
@@ -265,15 +591,51 @@ class Groups
 	 */
 	protected function getTextColor( $color )
 	{
-		$hsl = $color;
-		$hsl_sum = $hsl['h'] + $hsl['s'] + $hsl['l'];
-		if ( $hsl_sum <= 255 ) {
-			$color = '#fff';
+		if ( isset( $hsl['h'] ) )
+		{
+				$hsl = $color;
+				$hsl_sum = $hsl['h'] + $hsl['s'] + $hsl['l'];
+			if ( $hsl_sum <= 255 ) {
+				$color = '#fff;';
+			}
+			else {
+				$color = '#000;';
+			}
 		}
-		else {
-			$color = '#000';
+		else
+		{
+			$color = '#000;';
 		}
 		return $color;
+	}
+
+	/**
+	 * Gets the Color Id.
+	 *
+	 * Id is built on HSL as a nine digit string character.
+	 * Unique for each "bin". Increments by one (or more) for each additional
+	 * layer of level one or two. Does not repeat.
+	 *
+	 * @param array $color
+	 *
+	 * @return string|boolean
+	 */
+	protected function getColorID( $color )
+	{
+		if ( ! isset( $color['h'] ) || ! isset( $color['s'] ) || ! isset( $color['l'] ) )
+		{
+			$color_id = false;
+		}
+		elseif ( isset( $color['h'] ) && isset( $color['s'] ) && isset( $color['l'] ) )
+		{
+			$color_id = sprintf( '%s%s%s', str_pad( $color['h'], 3, "0", STR_PAD_LEFT ), str_pad( $color['s'], 3, "0", STR_PAD_LEFT ) , str_pad( $color['l'], 3, "0", STR_PAD_LEFT ) );
+		}
+		else
+		{
+			$color_id = '000000000';
+		}
+
+		return $color_id;
 	}
 
 	/**
